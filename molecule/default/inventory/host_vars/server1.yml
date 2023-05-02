@@ -1,0 +1,11 @@
+---
+consul_host_configuration:
+  bootstrap_expect: 3
+
+consul_host_service_overrides:
+  Service:
+    ProtectControlGroups: true
+    PrivateDevices: true
+    ProtectKernelTunables: true
+    ProtectSystem: strict
+    ReadWritePaths: "{{ consul_data_dir }}"
