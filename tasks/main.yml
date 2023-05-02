@@ -1,0 +1,108 @@
+---
+- name: Install Consul repository key
+  get_url:
+    url: "{{ consul_repository_key_url }}"
+    dest: "{{ consul_repository_key_path }}"
+    checksum: "{{ consul_repository_key_checksum | d(omit) }}"
+    mode: "0644"
+
+- name: Add Consul repository
+  apt_repository:
+    repo: >-
+      deb [signed-by={{ consul_repository_key_path }}]
+      {{ consul_repository_url }}
+      {{ ansible_distribution_release }}
+      main
+    filename: consul
+    state: present
+    update_cache: true
+
+- name: Install Consul
+  apt:
+    name: consul
+    state: "{{ consul_package_state }}"
+    policy_rc_d: "{{ consule_package_policy_rc_d }}"
+
+- name: Divert Consul configuration files
+  command: >
+    dpkg-divert --quiet --local
+    --divert {{ item }}.dpkg-divert
+    --rename {{ item }}
+  args:
+    creates: "{{ item }}.dpkg-divert"
+  loop:
+    - /etc/consul.d/consul.env
+    - /etc/consul.d/consul.hcl
+
+- name: Create Consul data directory
+  file:
+    path: "{{ consul_data_dir }}"
+    owner: "{{ consul_data_dir_owner }}"
+    group: "{{ consul_data_dir_group }}"
+    mode: "{{ consul_data_dir_mode }}"
+    state: directory
+
+- name: Create SystemD service override directory
+  file:
+    path: /etc/systemd/system/consul.service.d
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+
+- name: Install Consul SystemD service overrides
+  template:
+    src: etc/systemd/system/consul.service.d/ansible.conf.j2
+    dest: /etc/systemd/system/consul.service.d/ansible.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart consul
+  vars:
+    _consul_service_overrides: >-
+      {{
+        consul_service_overrides | combine(
+          consul_group_service_overrides, consul_host_service_overrides,
+          list_merge=consul_service_overrides_list_merge,
+          recursive=consul_service_overrides_recursive_merge
+        )
+      }}
+
+- name: Install Consul environment file
+  template:
+    src: etc/consul.d/consul.env.j2
+    dest: "{{ consul_environment_file }}"
+    owner: "{{ consul_environment_file_owner }}"
+    group: "{{ consul_environment_file_group }}"
+    mode: "{{ consul_environment_file_mode }}"
+  notify: restart consul
+  vars:
+    _consul_environment: >-
+      {{
+        consul_environment | combine(
+          consul_group_environment, consul_host_environment)
+      }}
+
+- name: Install Consul configuration
+  copy:
+    dest: "{{ consul_configuration_file }}"
+    owner: "{{ consul_configuration_file_owner }}"
+    group: "{{ consul_configuration_file_group }}"
+    mode: "{{ consul_configuration_file_mode }}"
+    content: "{{ _consul_configuration | to_nice_json }}"
+  notify: restart consul
+  vars:
+    _consul_configuration: >-
+      {{
+        consul_configuration | combine(
+          consul_group_configuration, consul_host_configuration,
+          list_merge=consul_configuration_list_merge,
+          recursive=consul_configuration_recursive_merge
+        )
+      }}
+
+- name: Flush handlers to ensure service is restarted
+  meta: flush_handlers
+  when: consul_flush_handlers

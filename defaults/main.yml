@@ -1,0 +1,55 @@
+---
+consul_service_enabled: true
+consul_service_state: started
+consul_restart_handler_state: restarted
+
+consul_repository_url: "https://apt.releases.hashicorp.com"
+consul_repository_key_url: "{{ consul_repository_url }}/gpg"
+consul_repository_key_path: /usr/share/keyrings/consul.asc
+#consul_repository_key_checksum:
+
+consul_package_state: present
+consule_package_policy_rc_d: 101
+
+consul_user: consul
+consul_group: consul
+
+consul_data_dir: /var/lib/consul
+consul_data_dir_owner: "{{ consul_user }}"
+consul_data_dir_group: "{{ consul_group }}"
+consul_data_dir_mode: "0750"
+
+consul_environment: {}
+consul_group_environment: {}
+consul_host_environment: {}
+
+consul_environment_file: /etc/consul.d/consul.env
+consul_environment_file_owner: "{{ consul_user }}"
+consul_environment_file_group: "{{ consul_group }}"
+consul_environment_file_mode: "0640"
+
+consul_configuration:
+  data_dir: "{{ consul_data_dir }}"
+consul_group_configuration: {}
+consul_host_configuration: {}
+
+consul_configuration_file: /etc/consul.d/ansible.json
+consul_configuration_file_owner: "{{ consul_user }}"
+consul_configuration_file_group: "{{ consul_group }}"
+consul_configuration_file_mode: "0640"
+
+consul_service_overrides:
+    Unit:
+      ConditionFileNotEmpty:
+        - ""
+        - "{{ consul_configuration_file }}"
+consul_group_service_overrides: {}
+consul_host_service_overrides: {}
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/combine_filter.html#keyword-parameters
+consul_configuration_list_merge: replace
+consul_configuration_recursive_merge: true
+consul_service_overrides_list_merge: replace
+consul_service_overrides_recursive_merge: true
+
+consul_flush_handlers: true

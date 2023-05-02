@@ -1,0 +1,30 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ensure Consul is installed
+      stat:
+        path: /usr/bin/consul
+      register: result
+      changed_when: false
+      failed_when:
+        - not (result.stat.isreg | d())
+        - not (result.stat.executable | d())
+
+    - name: Ensure Consul is running
+      service:
+        name: consul
+        state: started
+      register: result
+      check_mode: true
+      failed_when: result.changed
+
+    - name: Allow Consul cluster time to form consensus
+      pause:
+        seconds: 10
+
+    - name: Ensure Consul cluster is running
+      # noqa risky-shell-pipe
+      shell: consul info | grep -q 'members = 3'
+      changed_when: false
