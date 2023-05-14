@@ -2,7 +2,7 @@
 # {{ ansible_managed }}
 {% import "systemd-macros.j2" as macros with context %}
 
-{% for section, config in (_consul_service_overrides | dictsort) %}
+{% for section, config in (service_config | dictsort) %}
 {{ macros.systemd_section(config, section) -}}
 {%   if not loop.last %}
 

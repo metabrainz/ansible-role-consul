@@ -12,19 +12,63 @@
         - not (result.stat.isreg | d())
         - not (result.stat.executable | d())
 
+- name: Verify servers
+  hosts: consul_servers
+  gather_facts: false
+  tasks:
     - name: Ensure Consul is running
       service:
-        name: consul
+        name: consul-server
         state: started
       register: result
       check_mode: true
-      failed_when: result.changed
+      failed_when: result is changed
 
-    - name: Allow Consul cluster time to form consensus
-      pause:
-        seconds: 10
+#    - name: Allow Consul cluster time to form consensus
+#      pause:
+#        seconds: 5
 
     - name: Ensure Consul cluster is running
       # noqa risky-shell-pipe
       shell: consul info | grep -q 'members = 3'
       changed_when: false
+
+- name: Verify clients
+  hosts: consul_clients
+  gather_facts: false
+  tasks:
+    - name: Ensure Consul client is running
+      service:
+        name: consul-client
+        state: started
+      register: result
+      check_mode: true
+      failed_when: result is changed
+
+- name: Verify client1
+  hosts: client1
+  gather_facts: false
+  tasks:
+    - name: Check dpkg selection state
+      dpkg_selections:
+        name: consul
+        selection: "{{ consul_package_dpkg_selection }}"
+      check_mode: true
+      register: _result
+      failed_when: result is changed
+
+    - name: Check installed package version
+      command: dpkg-query -f '${Version}' -W consul
+      register: _result
+      failed_when: "_result.stdout != consul_package_version"
+      changed_when: false
+
+    - name: Add a key/value entry to Consul
+      community.general.consul_kv:
+        key: "molecule/test/{{ key }}"
+        value: "{{ value }}"
+      register: _result
+      failed_when: "_result is not changed or (_result['data']['Value']) != value"
+      vars:
+        key: "{{ 99999 | random | string }}"
+        value: "molecule"

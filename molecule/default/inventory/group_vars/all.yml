@@ -1,14 +1,2 @@
 ---
-consul_group_configuration:
-  bind_addr: 0.0.0.0
-  encrypt: "2BUGpqtEoh/Gy+AztZpX+d5Zx2ZYdLHeXcLYwIPTGi4="
-  retry_join: "{{ ['server1', 'server2', 'server3'] | difference([inventory_hostname]) }}"
-  server: true
-
-consul_group_service_overrides:
-  Service:
-    ProtectControlGroups: true
-    PrivateDevices: true
-    ProtectKernelTunables: true
-    ProtectSystem: strict
-    ReadWritePaths: "{{ consul_data_dir }}"
+consul_encryption_key: "2BUGpqtEoh/Gy+AztZpX+d5Zx2ZYdLHeXcLYwIPTGi4="

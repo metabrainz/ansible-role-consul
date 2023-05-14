@@ -1,55 +1,137 @@
 ---
-consul_service_enabled: true
-consul_service_state: started
-consul_restart_handler_state: restarted
-
 consul_repository_url: "https://apt.releases.hashicorp.com"
 consul_repository_key_url: "{{ consul_repository_url }}/gpg"
 consul_repository_key_path: /usr/share/keyrings/consul.asc
 #consul_repository_key_checksum:
 
+#consul_package_version:
+#consul_package_dpkg_selection: hold
 consul_package_state: present
-consule_package_policy_rc_d: 101
+consul_package_policy_rc_d: 101
 
-consul_user: consul
-consul_group: consul
+consul_flush_handlers: true
 
-consul_data_dir: /var/lib/consul
-consul_data_dir_owner: "{{ consul_user }}"
-consul_data_dir_group: "{{ consul_group }}"
-consul_data_dir_mode: "0750"
-
-consul_environment: {}
-consul_group_environment: {}
-consul_host_environment: {}
-
-consul_environment_file: /etc/consul.d/consul.env
-consul_environment_file_owner: "{{ consul_user }}"
-consul_environment_file_group: "{{ consul_group }}"
-consul_environment_file_mode: "0640"
-
-consul_configuration:
-  data_dir: "{{ consul_data_dir }}"
-consul_group_configuration: {}
-consul_host_configuration: {}
-
-consul_configuration_file: /etc/consul.d/ansible.json
-consul_configuration_file_owner: "{{ consul_user }}"
-consul_configuration_file_group: "{{ consul_group }}"
-consul_configuration_file_mode: "0640"
-
-consul_service_overrides:
-    Unit:
-      ConditionFileNotEmpty:
-        - ""
-        - "{{ consul_configuration_file }}"
-consul_group_service_overrides: {}
-consul_host_service_overrides: {}
+consul_server: true
+consul_client: false
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/combine_filter.html#keyword-parameters
 consul_configuration_list_merge: replace
 consul_configuration_recursive_merge: true
-consul_service_overrides_list_merge: replace
-consul_service_overrides_recursive_merge: true
+consul_service_configuration_list_merge: replace
+consul_service_configuration_recursive_merge: true
 
-consul_flush_handlers: true
+# server specific options
+consul_server_user: consul
+consul_server_group: consul
+
+consul_server_service_enabled: true
+consul_server_service_state: started
+consul_server_restart_handler_state: restarted
+
+consul_server_configuration:
+  data_dir: "{{ consul_server_data_directory }}"
+consul_server_group_configuration: {}
+consul_server_host_configuration: {}
+
+consul_server_configuration_file: /etc/consul-server.json
+consul_server_configuration_file_owner: "{{ consul_server_user }}"
+consul_server_configuration_file_group: "{{ consul_server_group }}"
+consul_server_configuration_file_mode: "0640"
+
+consul_server_environment: {}
+consul_server_group_environment: {}
+consul_server_host_environment: {}
+
+consul_server_environment_file: /etc/consul-server.env
+consul_server_environment_file_owner: "{{ consul_server_user }}"
+consul_server_environment_file_group: "{{ consul_server_group }}"
+consul_server_environment_file_mode: "0640"
+
+consul_server_data_directory: /var/lib/consul-server
+consul_server_data_directory_owner: "{{ consul_server_user }}"
+consul_server_data_directory_group: "{{ consul_server_group }}"
+consul_server_data_directory_mode: "0750"
+
+consul_server_service_configuration:
+  Unit:
+    Description: "HashiCorp Consul server"
+    Documentation: https://www.consul.io/
+    Requires: network-online.target
+    After: network-online.target
+    ConditionFileNotEmpty: "{{ consul_server_configuration_file }}"
+  Service:
+    EnvironmentFile: "-{{ consul_server_environment_file }}"
+    User: "{{ consul_server_user }}"
+    Group: "{{ consul_server_group }}"
+    ExecStart: "{{ consul_binary_path }} agent -server -config-file={{ consul_server_configuration_file }}"
+    ExecReload: /bin/kill --signal HUP $MAINPID
+    KillMode: process
+    KillSignal: SIGTERM
+    Restart: on-failure
+    LimitNOFILE: 65536
+    # custom options for increased security
+    PrivateDevices: true
+    ProtectControlGroups: true
+    ProtectKernelTunables: true
+    ProtectSystem: strict
+    ReadWritePaths: "{{ consul_server_data_directory }}"
+consul_server_group_service_configuration: {}
+consul_server_host_service_configuration: {}
+
+# client specific options
+consul_client_user: consul
+consul_client_group: consul
+
+consul_client_service_enabled: true
+consul_client_service_state: started
+consul_client_restart_handler_state: restarted
+
+consul_client_configuration:
+  data_dir: "{{ consul_client_data_directory }}"
+consul_client_group_configuration: {}
+consul_client_host_configuration: {}
+
+consul_client_configuration_file: /etc/consul-client.json
+consul_client_configuration_file_owner: "{{ consul_client_user }}"
+consul_client_configuration_file_group: "{{ consul_client_group }}"
+consul_client_configuration_file_mode: "0640"
+
+consul_client_environment: {}
+consul_client_group_environment: {}
+consul_client_host_environment: {}
+
+consul_client_environment_file: /etc/consul-client.env
+consul_client_environment_file_owner: "{{ consul_client_user }}"
+consul_client_environment_file_group: "{{ consul_client_group }}"
+consul_client_environment_file_mode: "0640"
+
+consul_client_data_directory: /var/lib/consul-client
+consul_client_data_directory_owner: "{{ consul_client_user }}"
+consul_client_data_directory_group: "{{ consul_client_group }}"
+consul_client_data_directory_mode: "0750"
+
+consul_client_service_configuration:
+  Unit:
+    Description: "HashiCorp Consul client"
+    Documentation: https://www.consul.io/
+    Requires: network-online.target
+    After: network-online.target
+    ConditionFileNotEmpty: "{{ consul_client_configuration_file }}"
+  Service:
+    EnvironmentFile: "-{{ consul_client_environment_file }}"
+    User: "{{ consul_client_user }}"
+    Group: "{{ consul_client_group }}"
+    ExecStart: "{{ consul_binary_path }} agent -config-file={{ consul_client_configuration_file }}"
+    ExecReload: /bin/kill --signal HUP $MAINPID
+    KillMode: process
+    KillSignal: SIGTERM
+    Restart: on-failure
+    LimitNOFILE: 65536
+    # custom options for increased security
+    PrivateDevices: true
+    ProtectControlGroups: true
+    ProtectKernelTunables: true
+    ProtectSystem: strict
+    ReadWritePaths: "{{ consul_client_data_directory }}"
+consul_client_group_service_configuration: {}
+consul_client_host_service_configuration: {}
