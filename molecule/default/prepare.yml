@@ -1,0 +1,11 @@
+---
+- name: Prepare Consul clients
+  hosts: consul_clients
+  tasks:
+    - name: Install test dependencies
+      apt:
+        name:
+          - python3-consul
+        state: present
+        update_cache: true
+        cache_valid_time: 600

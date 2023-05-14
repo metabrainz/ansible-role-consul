@@ -1,0 +1,69 @@
+---
+- name: Create Consul client data directory
+  file:
+    path: "{{ consul_client_data_directory }}"
+    owner: "{{ consul_client_data_directory_owner }}"
+    group: "{{ consul_client_data_directory_group }}"
+    mode: "{{ consul_client_data_directory_mode }}"
+    state: directory
+
+- name: Install Consul client SystemD service
+  template:
+    src: systemd.service.j2
+    dest: "/etc/systemd/system/{{ consul_client_service_name }}.service"
+    mode: "0644"
+  notify:
+    - reload systemd
+    - restart consul client
+  vars:
+    service_config: >-
+      {{
+        consul_client_service_configuration | combine(
+          consul_client_group_service_configuration,
+          consul_client_host_service_configuration,
+          list_merge=consul_service_configuration_list_merge,
+          recursive=consul_service_configuration_recursive_merge
+        )
+      }}
+
+- name: Install Consul client environment file
+  template:
+    src: consul.env.j2
+    dest: "{{ consul_client_environment_file }}"
+    owner: "{{ consul_client_environment_file_owner }}"
+    group: "{{ consul_client_environment_file_group }}"
+    mode: "{{ consul_client_environment_file_mode }}"
+  notify: restart consul client
+  vars:
+    _consul_environment: >-
+      {{
+        consul_client_environment | combine(
+          consul_client_group_environment,
+          consul_client_host_environment
+        )
+      }}
+
+- name: Install Consul configuration
+  template:
+    src: consul.json.j2
+    dest: "{{ consul_client_configuration_file }}"
+    owner: "{{ consul_client_configuration_file_owner }}"
+    group: "{{ consul_client_configuration_file_group }}"
+    mode: "{{ consul_client_configuration_file_mode }}"
+  notify: restart consul client
+  vars:
+    _consul_configuration: >-
+      {{
+        consul_client_configuration | combine(
+          consul_client_group_configuration,
+          consul_client_host_configuration,
+          list_merge=consul_configuration_list_merge,
+          recursive=consul_configuration_recursive_merge
+        )
+      }}
+
+- name: Enable and start Consul client service
+  service:
+    name: "{{ consul_client_service_name }}"
+    state: "{{ consul_client_service_state }}"
+    enabled: "{{ consul_client_service_enabled }}"
