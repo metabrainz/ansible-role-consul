@@ -23,6 +23,7 @@
     enabled: false
     state: stopped
     masked: true
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Install and configure Consul server
   include_tasks: server.yml

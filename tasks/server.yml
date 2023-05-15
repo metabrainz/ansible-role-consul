@@ -67,3 +67,4 @@
     name: "{{ consul_server_service_name }}"
     state: "{{ consul_server_service_state }}"
     enabled: "{{ consul_server_service_enabled }}"
+  ignore_errors: "{{ ansible_check_mode }}"
