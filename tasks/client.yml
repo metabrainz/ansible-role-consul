@@ -43,7 +43,7 @@
         )
       }}
 
-- name: Install Consul configuration
+- name: Install Consul client configuration
   template:
     src: consul.json.j2
     dest: "{{ consul_client_configuration_file }}"

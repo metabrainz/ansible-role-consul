@@ -1,5 +1,4 @@
-consul_server: false
-
+---
 consul_package_version: 1.15.1-1
 consul_package_dpkg_selection: hold
 

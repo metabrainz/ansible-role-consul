@@ -11,7 +11,7 @@ consul_package_policy_rc_d: 101
 
 consul_flush_handlers: true
 
-consul_server: true
+consul_server: false
 consul_client: false
 
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/combine_filter.html#keyword-parameters
