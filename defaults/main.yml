@@ -75,6 +75,8 @@ consul_server_service_configuration:
     ProtectKernelTunables: true
     ProtectSystem: strict
     ReadWritePaths: "{{ consul_server_data_directory }}"
+  Install:
+    WantedBy: multi-user.target
 consul_server_group_service_configuration: {}
 consul_server_host_service_configuration: {}
 
@@ -133,5 +135,7 @@ consul_client_service_configuration:
     ProtectKernelTunables: true
     ProtectSystem: strict
     ReadWritePaths: "{{ consul_client_data_directory }}"
+  Install:
+    WantedBy: multi-user.target
 consul_client_group_service_configuration: {}
 consul_client_host_service_configuration: {}
