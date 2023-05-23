@@ -10,6 +10,7 @@
       }}
     state: "{{ consul_package_state }}"
     policy_rc_d: "{{ consul_package_policy_rc_d }}"
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Set Consul package dpkg selection state
   dpkg_selections:
