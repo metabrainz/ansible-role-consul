@@ -1,11 +1,28 @@
 ---
 consul_client: true
 
-consul_client_host_configuration:
+consul_script_checks:
+  - name: test1
+    content: |
+      #!/bin/bash
+      echo "Test 1"
+      exit 0
+
+consul_client_group_configuration:
   encrypt: "{{ consul_encryption_key }}"
-  retry_join: >-
-    {{
-      groups['consul_servers'] |
-      product(['8301']) |
-      map('join', ':')
-    }}
+  enable_local_script_checks: true
+  services:
+    - name: service-test1
+      check:
+        id: test1
+        args:
+          - "{{ consul_script_checks_directory }}/test1"
+        interval: 30s
+        timeout: 1s
+    - name: service-test2
+      check:
+        id: test2
+        args:
+          - "{{ consul_script_checks_directory }}/test2"
+        interval: 30s
+        timeout: 1s

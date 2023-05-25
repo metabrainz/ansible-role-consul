@@ -26,6 +26,58 @@
     masked: true
   ignore_errors: "{{ ansible_check_mode }}"
 
+- name: Create Consul script checks directory
+  file:
+    path: "{{ consul_script_checks_directory }}"
+    owner: "{{ consul_script_checks_directory_owner | d(omit) }}"
+    group: "{{ consul_script_checks_directory_group | d(omit) }}"
+    mode: "{{ consul_script_checks_directory_mode | d(omit) }}"
+    state: directory
+
+- name: Combine Consul script check variables
+  set_fact:
+    _consul_script_checks: >-
+      {{
+        [
+          consul_script_checks,
+          consul_group_script_checks,
+          consul_host_script_checks
+        ] | flatten
+      }}
+
+- name: Install Consul script checks
+  copy:
+    src: "{{ item.src | d(omit) }}"
+    content: "{{ item.content | d(omit) }}"
+    dest: "{{ consul_script_checks_directory }}/{{ item.name }}"
+    mode: "{{ item.mode | d('0755') }}"
+    owner: "{{ item.owner | d(omit) }}"
+    group: "{{ item.group | d(omit) }}"
+    force: "{{ item.force | d(omit) }}"
+  loop: "{{ _consul_script_checks }}"
+  when:
+    - item.name is defined
+    - item.src is defined or item.content is defined
+    - not item.skipped_when | d(false) | bool
+
+- name: Download and install Consul script checks
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ consul_script_checks_directory }}/{{ item.name }}"
+    mode: "{{ item.mode | d('0755') }}"
+    owner: "{{ item.owner | d(omit) }}"
+    group: "{{ item.group | d(omit) }}"
+    force: "{{ item.force | d(omit) }}"
+    checksum: "{{ item.checksum | d(omit) }}"
+    username: "{{ item.username | d(omit) }}"
+    password: "{{ item.password | d(omit) }}"
+    validate_certs: "{{ item.validate_certs | d(omit) }}"
+  loop: "{{ _consul_script_checks }}"
+  when:
+    - item.name is defined
+    - item.url is defined
+    - not item.skipped_when | d(false) | bool
+
 - name: Install and configure Consul server
   include_tasks: server.yml
   when: consul_server

@@ -3,10 +3,19 @@ consul_package_version: 1.15.1-1
 consul_package_dpkg_selection: hold
 
 consul_client_host_configuration:
-  encrypt: "{{ consul_encryption_key }}"
   retry_join: >-
     {{
       groups['consul_servers'] |
       product(['8301']) |
       map('join', ':')
     }}
+
+consul_host_script_checks:
+  - name: test2
+    url: https://gist.github.com/atj/4c26d8474621cfb607533bdaca32b376/raw/9e86439a5de1de8fd1aa12c98c8261342a466a1e/consul-script-test2.py
+  - name: test3
+    content: |
+      #!/bin/bash
+      echo "Test 3"
+      exit 2
+    skipped_when: "{{ inventory_hostname == 'client1' }}"

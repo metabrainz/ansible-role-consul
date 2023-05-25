@@ -54,21 +54,42 @@
         name: consul
         selection: "{{ consul_package_dpkg_selection }}"
       check_mode: true
-      register: _result
+      register: result
       failed_when: result is changed
 
     - name: Check installed package version
       command: dpkg-query -f '${Version}' -W consul
-      register: _result
-      failed_when: "_result.stdout != consul_package_version"
+      register: result
+      failed_when: result.stdout != consul_package_version
       changed_when: false
 
     - name: Add a key/value entry to Consul
       community.general.consul_kv:
         key: "molecule/test/{{ key }}"
         value: "{{ value }}"
-      register: _result
-      failed_when: "_result is not changed or (_result['data']['Value']) != value"
+      register: result
+      failed_when: result is not changed or (result['data']['Value']) != value
       vars:
         key: "{{ 99999 | random | string }}"
         value: "molecule"
+
+    - name: Ensure skipped script check is not installed
+      stat:
+        path: /usr/local/share/consul/script-checks/test3
+      register: result
+      changed_when: false
+      failed_when: result.stat.isreg | d()
+
+    - name: Check Consul service statuses
+      # noqa command-instead-of-module risky-shell-pipe
+      shell: >
+        curl -s http://localhost:8500/v1/health/checks/{{ item.service }} |
+        jq .[0].Status
+      register: result
+      failed_when: result.stdout != item.status
+      changed_when: false
+      loop:
+        - service: service-test1
+          status: '"passing"'
+        - service: service-test2
+          status: '"critical"'
