@@ -6,6 +6,8 @@
       apt:
         name:
           - python3-consul
+          - curl
+          - jq
         state: present
         update_cache: true
         cache_valid_time: 600

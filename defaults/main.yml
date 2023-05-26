@@ -139,3 +139,23 @@ consul_client_service_configuration:
     WantedBy: multi-user.target
 consul_client_group_service_configuration: {}
 consul_client_host_service_configuration: {}
+
+consul_script_checks_directory: /usr/local/share/consul/script-checks
+#consul_script_checks_directory_owner:
+#consul_script_checks_directory_group:
+#consul_script_checks_directory_mode:
+
+#consul_script_checks:
+#  - src: files/consul/check-postgres-connection
+#    name: check-postgres
+#  - content: |
+#      #/bin/bash
+#      exit 3
+#    name: check-fail
+#  - url: https://example.com/downloads/check-http
+#    name: check-http
+#    mode: "0755"
+#    skipped_when: "{{ inventory_hostname not in groups['http_servers'] }}"
+consul_script_checks: []
+consul_group_script_checks: []
+consul_host_script_checks: []
