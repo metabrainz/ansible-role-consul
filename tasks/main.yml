@@ -80,12 +80,12 @@
 
 - name: Install and configure Consul server
   include_tasks: server.yml
-  when: consul_server
+  when: consul_server | bool
 
 - name: Install and configure Consul client
   include_tasks: client.yml
-  when: consul_client
+  when: consul_client | bool
 
 - name: Flush handlers to ensure Consul is restarted
   meta: flush_handlers
-  when: consul_flush_handlers
+  when: consul_flush_handlers | bool
