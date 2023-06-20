@@ -1,8 +1,8 @@
 - name: Install package repository
-  include_tasks: repository.yml
+  ansible.builtin.include_tasks: repository.yml
 
 - name: Install Consul package
-  apt:
+  ansible.builtin.apt:
     name: >-
       {{
         'consul={}'.format(consul_package_version) if (consul_package_version | d())
@@ -13,13 +13,13 @@
   ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Set Consul package dpkg selection state
-  dpkg_selections:
+  ansible.builtin.dpkg_selections:
     name: consul
     selection: "{{ consul_package_dpkg_selection }}"
   when: consul_package_dpkg_selection | d()
 
 - name: Mask Consul service installed by package
-  systemd:
+  ansible.builtin.systemd:
     name: consul
     enabled: false
     state: stopped
@@ -27,7 +27,7 @@
   ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Create Consul script checks directory
-  file:
+  ansible.builtin.file:
     path: "{{ consul_script_checks_directory }}"
     owner: "{{ consul_script_checks_directory_owner | d(omit) }}"
     group: "{{ consul_script_checks_directory_group | d(omit) }}"
@@ -35,7 +35,7 @@
     state: directory
 
 - name: Combine Consul script check variables
-  set_fact:
+  ansible.builtin.set_fact:
     _consul_script_checks: >-
       {{
         [
@@ -46,7 +46,7 @@
       }}
 
 - name: Install Consul script checks
-  copy:
+  ansible.builtin.copy:
     src: "{{ item.src | d(omit) }}"
     content: "{{ item.content | d(omit) }}"
     dest: "{{ consul_script_checks_directory }}/{{ item.name }}"
@@ -61,7 +61,7 @@
     - not item.skipped_when | d(false) | bool
 
 - name: Download and install Consul script checks
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ item.url }}"
     dest: "{{ consul_script_checks_directory }}/{{ item.name }}"
     mode: "{{ item.mode | d('0755') }}"
@@ -79,13 +79,13 @@
     - not item.skipped_when | d(false) | bool
 
 - name: Install and configure Consul server
-  include_tasks: server.yml
+  ansible.builtin.include_tasks: server.yml
   when: consul_server | bool
 
 - name: Install and configure Consul client
-  include_tasks: client.yml
+  ansible.builtin.include_tasks: client.yml
   when: consul_client | bool
 
 - name: Flush handlers to ensure Consul is restarted
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
   when: consul_flush_handlers | bool

@@ -3,7 +3,7 @@
   hosts: consul_clients
   tasks:
     - name: Install test dependencies
-      apt:
+      ansible.builtin.apt:
         name:
           - python3-consul
           - curl

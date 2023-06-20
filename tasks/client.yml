@@ -1,6 +1,6 @@
 ---
 - name: Create Consul client data directory
-  file:
+  ansible.builtin.file:
     path: "{{ consul_client_data_directory }}"
     owner: "{{ consul_client_data_directory_owner }}"
     group: "{{ consul_client_data_directory_group }}"
@@ -8,7 +8,7 @@
     state: directory
 
 - name: Install Consul client SystemD service
-  template:
+  ansible.builtin.template:
     src: systemd.service.j2
     dest: "/etc/systemd/system/{{ consul_client_service_name }}.service"
     mode: "0644"
@@ -27,7 +27,7 @@
       }}
 
 - name: Install Consul client environment file
-  template:
+  ansible.builtin.template:
     src: consul.env.j2
     dest: "{{ consul_client_environment_file }}"
     owner: "{{ consul_client_environment_file_owner }}"
@@ -44,7 +44,7 @@
       }}
 
 - name: Install Consul client configuration
-  template:
+  ansible.builtin.template:
     src: consul.json.j2
     dest: "{{ consul_client_configuration_file }}"
     owner: "{{ consul_client_configuration_file_owner }}"
@@ -63,7 +63,7 @@
       }}
 
 - name: Enable and start Consul client service
-  service:
+  ansible.builtin.service:
     name: "{{ consul_client_service_name }}"
     state: "{{ consul_client_service_state }}"
     enabled: "{{ consul_client_service_enabled }}"

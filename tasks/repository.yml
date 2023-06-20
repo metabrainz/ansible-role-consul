@@ -1,13 +1,13 @@
 ---
 - name: Install Consul repository key
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ consul_repository_key_url }}"
     dest: "{{ consul_repository_key_path }}"
     checksum: "{{ consul_repository_key_checksum | d(omit) }}"
     mode: "0644"
 
 - name: Add Consul repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: >-
       deb [signed-by={{ consul_repository_key_path }}]
       {{ consul_repository_url }}

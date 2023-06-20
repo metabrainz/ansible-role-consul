@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: Ensure Consul is installed
-      stat:
+      ansible.builtin.stat:
         path: /usr/bin/consul
       register: result
       changed_when: false
@@ -17,7 +17,7 @@
   gather_facts: false
   tasks:
     - name: Ensure Consul is running
-      service:
+      ansible.builtin.service:
         name: consul-server
         state: started
       register: result
@@ -30,7 +30,7 @@
 
     - name: Ensure Consul cluster is running
       # noqa risky-shell-pipe
-      shell: consul info | grep -q 'members = 3'
+      ansible.builtin.shell: consul info | grep -q 'members = 3'
       changed_when: false
 
 - name: Verify clients
@@ -38,7 +38,7 @@
   gather_facts: false
   tasks:
     - name: Ensure Consul client is running
-      service:
+      ansible.builtin.service:
         name: consul-client
         state: started
       register: result
@@ -50,7 +50,7 @@
   gather_facts: false
   tasks:
     - name: Check dpkg selection state
-      dpkg_selections:
+      ansible.builtin.dpkg_selections:
         name: consul
         selection: "{{ consul_package_dpkg_selection }}"
       check_mode: true
@@ -58,7 +58,7 @@
       failed_when: result is changed
 
     - name: Check installed package version
-      command: dpkg-query -f '${Version}' -W consul
+      ansible.builtin.command: dpkg-query -f '${Version}' -W consul
       register: result
       failed_when: result.stdout != consul_package_version
       changed_when: false
@@ -74,7 +74,7 @@
         value: "molecule"
 
     - name: Ensure skipped script check is not installed
-      stat:
+      ansible.builtin.stat:
         path: /usr/local/share/consul/script-checks/test3
       register: result
       changed_when: false
@@ -82,7 +82,7 @@
 
     - name: Check Consul service statuses
       # noqa command-instead-of-module risky-shell-pipe
-      shell: >
+      ansible.builtin.shell: >
         curl -s http://localhost:8500/v1/health/checks/{{ item.service }} |
         jq .[0].Status
       register: result

@@ -1,12 +1,12 @@
 ---
 - name: Reload SystemD
   listen: reload systemd
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: true
 
 - name: Restart Consul client
   listen: restart consul client
-  service:
+  ansible.builtin.service:
     name: "{{ consul_client_service_name }}"
     state: "{{ consul_client_restart_handler_state }}"
   when: consul_client_service_enabled
@@ -14,7 +14,7 @@
 
 - name: Restart Consul server
   listen: restart consul server
-  service:
+  ansible.builtin.service:
     name: "{{ consul_server_service_name }}"
     state: "{{ consul_server_restart_handler_state }}"
   when: consul_server_service_enabled
