@@ -24,9 +24,9 @@
       check_mode: true
       failed_when: result is changed
 
-#    - name: Allow Consul cluster time to form consensus
-#      pause:
-#        seconds: 5
+    - name: Allow Consul cluster time to form consensus
+      ansible.builtin.pause:
+        seconds: 5
 
     - name: Ensure Consul cluster is running
       # noqa risky-shell-pipe
