@@ -5,7 +5,7 @@ consul_repository_key_path: /usr/share/keyrings/consul.asc
 #consul_repository_key_checksum:
 
 #consul_package_version:
-#consul_package_dpkg_selection: hold
+consul_package_pin_priority: 990
 consul_package_state: present
 consul_package_policy_rc_d: 101
 

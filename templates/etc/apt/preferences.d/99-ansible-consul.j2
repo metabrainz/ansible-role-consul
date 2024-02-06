@@ -1,0 +1,8 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+{% if consul_package_version|d() %}
+
+Package: {{ consul_package }}
+Pin: version {{ consul_package_version }}
+Pin-Priority: {{ consul_package_pin_priority }}
+{% endif %}
