@@ -1,4 +1,5 @@
 ---
+consul_package: consul
 consul_binary_path: /usr/bin/consul
 consul_client_service_name: consul-client
 consul_server_service_name: consul-server

@@ -16,6 +16,14 @@
   hosts: consul_servers
   gather_facts: false
   tasks:
+    - name: Ensure expected Consul version is installed
+      ansible.builtin.command: dpkg-query -f '${Version}' -W consul
+      register: result
+      changed_when: false
+      failed_when: >-
+        result.rc != 0 or
+        result.stdout is not match("1\.16\.5")
+
     - name: Ensure Consul is running
       ansible.builtin.service:
         name: consul-server
@@ -49,19 +57,13 @@
   hosts: client1
   gather_facts: false
   tasks:
-    - name: Check dpkg selection state
-      ansible.builtin.dpkg_selections:
-        name: consul
-        selection: "{{ consul_package_dpkg_selection }}"
-      check_mode: true
-      register: result
-      failed_when: result is changed
-
-    - name: Check installed package version
+    - name: Ensure expected Consul version is installed
       ansible.builtin.command: dpkg-query -f '${Version}' -W consul
       register: result
-      failed_when: result.stdout != consul_package_version
       changed_when: false
+      failed_when: >-
+        result.rc != 0 or
+        result.stdout != "1.15.1-1"
 
     - name: Add a key/value entry to Consul
       community.general.consul_kv:

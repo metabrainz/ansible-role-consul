@@ -1,22 +1,18 @@
 - name: Install package repository
   ansible.builtin.include_tasks: repository.yml
 
+- name: Install Consul apt preferences
+  ansible.builtin.template:
+    src: etc/apt/preferences.d/99-ansible-consul.j2
+    dest: /etc/apt/preferences.d/99-ansible-consul
+    mode: "0644"
+
 - name: Install Consul package
   ansible.builtin.apt:
-    name: >-
-      {{
-        'consul={}'.format(consul_package_version) if (consul_package_version | d())
-        else 'consul'
-      }}
+    name: "{{ consul_package }}"
     state: "{{ consul_package_state }}"
     policy_rc_d: "{{ consul_package_policy_rc_d }}"
   ignore_errors: "{{ ansible_check_mode }}"
-
-- name: Set Consul package dpkg selection state
-  ansible.builtin.dpkg_selections:
-    name: consul
-    selection: "{{ consul_package_dpkg_selection }}"
-  when: consul_package_dpkg_selection | d()
 
 - name: Mask Consul service installed by package
   ansible.builtin.systemd:

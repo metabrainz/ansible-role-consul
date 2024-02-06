@@ -1,4 +1,5 @@
 ---
+consul_package_version: "1.16.5*"
 consul_server: true
 
 consul_server_group_configuration:
