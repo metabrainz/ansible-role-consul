@@ -5,4 +5,4 @@ consul_server: true
 consul_server_group_configuration:
   bind_addr: 0.0.0.0
   encrypt: "{{ consul_encryption_key }}"
-  retry_join: "{{ groups['consul_servers'] | difference([inventory_hostname]) }}"
+  retry_join: "{{ groups['consul_servers'] | difference([inventory_hostname]) | sort }}"
