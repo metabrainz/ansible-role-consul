@@ -67,13 +67,13 @@
 
     - name: Add a key/value entry to Consul
       community.general.consul_kv:
-        key: "molecule/test/{{ key }}"
+        key: molecule/test/{{ key }}
         value: "{{ value }}"
       register: result
       failed_when: result is not changed or (result['data']['Value']) != value
       vars:
         key: "{{ 99999 | random | string }}"
-        value: "molecule"
+        value: molecule
 
     - name: Ensure skipped script check is not installed
       ansible.builtin.stat:

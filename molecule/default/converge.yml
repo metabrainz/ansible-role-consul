@@ -3,6 +3,6 @@
   hosts: all
   gather_facts: true
   tasks:
-    - name: "Include metabrainz.consul"
+    - name: Include metabrainz.consul
       ansible.builtin.include_role:
-        name: "metabrainz.consul"
+        name: metabrainz.consul

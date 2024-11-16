@@ -10,7 +10,7 @@
 - name: Install Consul server SystemD service
   ansible.builtin.template:
     src: systemd.service.j2
-    dest: "/etc/systemd/system/{{ consul_server_service_name }}.service"
+    dest: /etc/systemd/system/{{ consul_server_service_name }}.service
     mode: "0644"
   notify:
     - reload systemd

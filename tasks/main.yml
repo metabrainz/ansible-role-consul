@@ -1,3 +1,4 @@
+---
 - name: Install package repository
   ansible.builtin.include_tasks: repository.yml
 

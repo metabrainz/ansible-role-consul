@@ -1,10 +1,10 @@
 ---
-consul_repository_url: "https://apt.releases.hashicorp.com"
+consul_repository_url: https://apt.releases.hashicorp.com
 consul_repository_key_url: "{{ consul_repository_url }}/gpg"
 consul_repository_key_path: /usr/share/keyrings/consul.asc
-#consul_repository_key_checksum:
+# consul_repository_key_checksum:
 
-#consul_package_version:
+# consul_package_version:
 consul_package_pin_priority: 990
 consul_package_state: present
 consul_package_policy_rc_d: 101
@@ -32,7 +32,6 @@ consul_server_configuration:
   data_dir: "{{ consul_server_data_directory }}"
 consul_server_group_configuration: {}
 consul_server_host_configuration: {}
-
 consul_server_configuration_file: /etc/consul-server.json
 consul_server_configuration_file_owner: "{{ consul_server_user }}"
 consul_server_configuration_file_group: "{{ consul_server_group }}"
@@ -41,7 +40,6 @@ consul_server_configuration_file_mode: "0640"
 consul_server_environment: {}
 consul_server_group_environment: {}
 consul_server_host_environment: {}
-
 consul_server_environment_file: /etc/consul-server.env
 consul_server_environment_file_owner: "{{ consul_server_user }}"
 consul_server_environment_file_group: "{{ consul_server_group }}"
@@ -54,13 +52,13 @@ consul_server_data_directory_mode: "0750"
 
 consul_server_service_configuration:
   Unit:
-    Description: "HashiCorp Consul server"
+    Description: HashiCorp Consul server
     Documentation: https://www.consul.io/
     Requires: network-online.target
     After: network-online.target
     ConditionFileNotEmpty: "{{ consul_server_configuration_file }}"
   Service:
-    EnvironmentFile: "-{{ consul_server_environment_file }}"
+    EnvironmentFile: -{{ consul_server_environment_file }}
     User: "{{ consul_server_user }}"
     Group: "{{ consul_server_group }}"
     ExecStart: "{{ consul_binary_path }} agent -server -config-file={{ consul_server_configuration_file }}"
@@ -79,7 +77,6 @@ consul_server_service_configuration:
     WantedBy: multi-user.target
 consul_server_group_service_configuration: {}
 consul_server_host_service_configuration: {}
-
 # client specific options
 consul_client_user: consul
 consul_client_group: consul
@@ -92,7 +89,6 @@ consul_client_configuration:
   data_dir: "{{ consul_client_data_directory }}"
 consul_client_group_configuration: {}
 consul_client_host_configuration: {}
-
 consul_client_configuration_file: /etc/consul-client.json
 consul_client_configuration_file_owner: "{{ consul_client_user }}"
 consul_client_configuration_file_group: "{{ consul_client_group }}"
@@ -101,7 +97,6 @@ consul_client_configuration_file_mode: "0640"
 consul_client_environment: {}
 consul_client_group_environment: {}
 consul_client_host_environment: {}
-
 consul_client_environment_file: /etc/consul-client.env
 consul_client_environment_file_owner: "{{ consul_client_user }}"
 consul_client_environment_file_group: "{{ consul_client_group }}"
@@ -114,13 +109,13 @@ consul_client_data_directory_mode: "0750"
 
 consul_client_service_configuration:
   Unit:
-    Description: "HashiCorp Consul client"
+    Description: HashiCorp Consul client
     Documentation: https://www.consul.io/
     Requires: network-online.target
     After: network-online.target
     ConditionFileNotEmpty: "{{ consul_client_configuration_file }}"
   Service:
-    EnvironmentFile: "-{{ consul_client_environment_file }}"
+    EnvironmentFile: -{{ consul_client_environment_file }}
     User: "{{ consul_client_user }}"
     Group: "{{ consul_client_group }}"
     ExecStart: "{{ consul_binary_path }} agent -config-file={{ consul_client_configuration_file }}"
@@ -139,23 +134,22 @@ consul_client_service_configuration:
     WantedBy: multi-user.target
 consul_client_group_service_configuration: {}
 consul_client_host_service_configuration: {}
-
 consul_script_checks_directory: /usr/local/share/consul/script-checks
-#consul_script_checks_directory_owner:
-#consul_script_checks_directory_group:
-#consul_script_checks_directory_mode:
+# consul_script_checks_directory_owner:
+# consul_script_checks_directory_group:
+# consul_script_checks_directory_mode:
 
-#consul_script_checks:
-#  - src: files/consul/check-postgres-connection
-#    name: check-postgres
-#  - content: |
-#      #/bin/bash
-#      exit 3
-#    name: check-fail
-#  - url: https://example.com/downloads/check-http
-#    name: check-http
-#    mode: "0755"
-#    skipped_when: "{{ inventory_hostname not in groups['http_servers'] }}"
+# consul_script_checks:
+#   - src: files/consul/check-postgres-connection
+#     name: check-postgres
+#   - content: |
+#       #/bin/bash
+#       exit 3
+#     name: check-fail
+#   - url: https://example.com/downloads/check-http
+#     name: check-http
+#     mode: "0755"
+#     skipped_when: "{{ inventory_hostname not in groups['http_servers'] }}"
 consul_script_checks: []
 consul_group_script_checks: []
 consul_host_script_checks: []
