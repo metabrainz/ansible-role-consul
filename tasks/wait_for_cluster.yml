@@ -19,6 +19,7 @@
     status_code: 200
   register: _consul_leader
   changed_when: false
+  check_mode: false
   # Leader endpoint returns a JSON-quoted address string, e.g. "10.0.0.1:8300".
   # Empty ("" or "\"\"") means no leader yet.
   until: >-
@@ -40,6 +41,7 @@
     status_code: 200
   register: _consul_raft
   changed_when: false
+  check_mode: false
   until: >-
     _consul_raft.json is defined and
     (_consul_raft.json.Servers | selectattr('Voter') | list | length)
