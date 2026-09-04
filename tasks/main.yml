@@ -86,3 +86,9 @@
 - name: Flush handlers to ensure Consul is restarted
   ansible.builtin.meta: flush_handlers
   when: consul_flush_handlers | bool
+
+- name: Wait for the Consul cluster to be healthy after restart
+  ansible.builtin.include_tasks: wait_for_cluster.yml
+  when:
+    - consul_wait_for_healthy_cluster | bool
+    - consul_server | bool
