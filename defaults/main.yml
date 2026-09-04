@@ -11,6 +11,27 @@ consul_package_policy_rc_d: 101
 
 consul_flush_handlers: true
 
+# Optional post-restart health gate (server agents only).
+#
+# When enabled, after handlers are flushed (i.e. after any restart triggered by
+# a config/service change) the role blocks until the local server agent reports
+# a raft leader AND at least `consul_wait_for_healthy_cluster_voters` voters.
+# Combined with `serial: 1` on the consul_servers play, this ensures a restarted
+# server has fully rejoined the quorum before the next server is touched, which
+# is required when changing options that need a restart (e.g. telemetry).
+#
+# Disabled by default so it is a no-op for existing users. Enable it in the
+# consul_servers group where the HTTP API address/voter count are known.
+consul_wait_for_healthy_cluster: false
+# Local server HTTP API base URL (this repo runs servers on port 8501).
+consul_wait_for_healthy_cluster_api: "http://127.0.0.1:8501"
+# Expected number of raft voters once the cluster is whole.
+consul_wait_for_healthy_cluster_voters: 1
+consul_wait_for_healthy_cluster_retries: 30
+consul_wait_for_healthy_cluster_delay: 5
+# Optional ACL token for the API calls (leave empty if the API is unauthenticated).
+consul_wait_for_healthy_cluster_token: ""
+
 consul_server: false
 consul_client: false
 

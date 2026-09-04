@@ -1,0 +1,59 @@
+---
+# Post-restart health gate for Consul server agents.
+#
+# Blocks until the LOCAL server agent reports:
+#   * a non-empty raft leader (/v1/status/leader), and
+#   * at least `consul_wait_for_healthy_cluster_voters` voters in the raft
+#     configuration (/v1/operator/raft/configuration).
+#
+# Intended to run after handlers are flushed, so a server that was just
+# restarted has demonstrably rejoined the quorum before `serial: 1` advances
+# the play to the next server. No-op unless consul_wait_for_healthy_cluster.
+
+- name: Wait for a Consul raft leader to be elected
+  ansible.builtin.uri:
+    url: "{{ consul_wait_for_healthy_cluster_api }}/v1/status/leader"
+    method: GET
+    headers: "{{ _consul_wait_headers }}"
+    return_content: true
+    status_code: 200
+  register: _consul_leader
+  changed_when: false
+  # Leader endpoint returns a JSON-quoted address string, e.g. "10.0.0.1:8300".
+  # Empty ("" or "\"\"") means no leader yet.
+  until: >-
+    _consul_leader.content is defined and
+    (_consul_leader.content | trim | trim('"') | length) > 0
+  retries: "{{ consul_wait_for_healthy_cluster_retries }}"
+  delay: "{{ consul_wait_for_healthy_cluster_delay }}"
+  vars:
+    _consul_wait_headers: >-
+      {{ {'X-Consul-Token': consul_wait_for_healthy_cluster_token}
+         if consul_wait_for_healthy_cluster_token | length > 0 else {} }}
+
+- name: Wait for the expected number of Consul raft voters
+  ansible.builtin.uri:
+    url: "{{ consul_wait_for_healthy_cluster_api }}/v1/operator/raft/configuration"
+    method: GET
+    headers: "{{ _consul_wait_headers }}"
+    return_content: true
+    status_code: 200
+  register: _consul_raft
+  changed_when: false
+  until: >-
+    _consul_raft.json is defined and
+    (_consul_raft.json.Servers | selectattr('Voter') | list | length)
+      >= (consul_wait_for_healthy_cluster_voters | int)
+  retries: "{{ consul_wait_for_healthy_cluster_retries }}"
+  delay: "{{ consul_wait_for_healthy_cluster_delay }}"
+  vars:
+    _consul_wait_headers: >-
+      {{ {'X-Consul-Token': consul_wait_for_healthy_cluster_token}
+         if consul_wait_for_healthy_cluster_token | length > 0 else {} }}
+
+- name: Report healthy Consul cluster
+  ansible.builtin.debug:
+    msg: >-
+      Consul healthy on {{ inventory_hostname }}:
+      leader={{ _consul_leader.content | trim | trim('"') }},
+      voters={{ _consul_raft.json.Servers | selectattr('Voter') | list | length }}
