@@ -53,13 +53,40 @@
     mode: "0644"
     force: "{{ _consul_repository_key_force | bool }}"
 
+- name: Find stale Consul repository entries (wrong release)
+  ansible.builtin.shell:
+    cmd: >-
+      grep -hE '^deb .*{{ consul_repository_url }}' /etc/apt/sources.list.d/consul.list 2>/dev/null
+      | grep -v ' {{ consul_repository_release }} ' || true
+    executable: /bin/bash
+  register: _consul_stale_repos
+  changed_when: false
+
+- name: Remove stale Consul repository entries (e.g. after a release change)
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    filename: consul
+    state: absent
+    update_cache: false
+  loop: "{{ _consul_stale_repos.stdout_lines | d([]) }}"
+
 - name: Add Consul repository
   ansible.builtin.apt_repository:
     repo: >-
       deb [signed-by={{ consul_repository_key_path }}]
       {{ consul_repository_url }}
-      {{ ansible_distribution_release }}
+      {{ consul_repository_release }}
       main
     filename: consul
     state: present
+    # Do not update the cache here: when the release changes (e.g. focal ->
+    # jammy) the old, unverifiable entry is still on disk until this task
+    # rewrites consul.list, so an inline update_cache would fail on the stale
+    # entry. Refresh the cache separately once the file is correct.
+    update_cache: false
+  register: _consul_repository
+
+- name: Update apt cache for the Consul repository
+  ansible.builtin.apt:
     update_cache: true
+  when: _consul_repository is changed or _consul_stale_repos.stdout_lines | d([]) | length > 0

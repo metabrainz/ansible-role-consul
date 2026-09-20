@@ -2,6 +2,9 @@
 consul_repository_url: https://apt.releases.hashicorp.com
 consul_repository_key_url: "{{ consul_repository_url }}/gpg"
 consul_repository_key_path: /usr/share/keyrings/consul.asc
+consul_repository_release: >-
+  {{ _consul_repository_release_fallback[ansible_distribution_release]
+     | d(ansible_distribution_release) }}
 # consul_repository_key_checksum:
 
 # consul_package_version:
