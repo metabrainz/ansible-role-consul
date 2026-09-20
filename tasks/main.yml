@@ -1,6 +1,12 @@
 ---
 - name: Install package repository
-  ansible.builtin.include_tasks: repository.yml
+  ansible.builtin.include_tasks:
+    file: repository.yml
+    apply:
+      tags:
+        - consul-repository
+  tags:
+    - consul-repository
 
 - name: Install Consul apt preferences
   ansible.builtin.template:
