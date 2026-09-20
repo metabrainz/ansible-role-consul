@@ -1,10 +1,57 @@
 ---
+# The HashiCorp signing key is rotated periodically (e.g. 2026-09-09). A plain
+# get_url only downloads when the destination is absent, so a rotated key would
+# leave a stale keyring on disk and every `apt-get update` would fail with
+# "NO_PUBKEY". To self-heal, we compare the fingerprints of the installed key
+# against the current upstream key and force a re-download when they differ.
+
+- name: Check whether Consul repository key is installed
+  ansible.builtin.stat:
+    path: "{{ consul_repository_key_path }}"
+  register: _consul_repository_key_stat
+
+- name: Read fingerprints of the installed Consul repository key
+  ansible.builtin.command:
+    cmd: "gpg --show-keys --with-colons {{ consul_repository_key_path }}"
+  register: _consul_installed_key
+  changed_when: false
+  failed_when: false
+  when: _consul_repository_key_stat.stat.exists
+
+- name: Fetch fingerprints of the upstream Consul repository key
+  ansible.builtin.shell:
+    cmd: "set -o pipefail && curl -fsSL {{ consul_repository_key_url }} | gpg --show-keys --with-colons"
+    executable: /bin/bash
+  register: _consul_upstream_key
+  changed_when: false
+  # Only needed to decide whether to refresh an already-present key.
+  when: _consul_repository_key_stat.stat.exists
+  # Do not fail the whole run if upstream is briefly unreachable; the key is
+  # already present and get_url below will still be a no-op in that case.
+  failed_when: false
+
+- name: Determine whether the installed Consul repository key is stale
+  ansible.builtin.set_fact:
+    _consul_repository_key_force: >-
+      {{
+        _consul_repository_key_stat.stat.exists
+        and (_consul_upstream_key.rc | d(1)) == 0
+        and (
+          (_consul_installed_key.stdout | d('')
+            | regex_findall('^fpr:+([0-9A-F]+):', multiline=True) | sort)
+          !=
+          (_consul_upstream_key.stdout | d('')
+            | regex_findall('^fpr:+([0-9A-F]+):', multiline=True) | sort)
+        )
+      }}
+
 - name: Install Consul repository key
   ansible.builtin.get_url:
     url: "{{ consul_repository_key_url }}"
     dest: "{{ consul_repository_key_path }}"
     checksum: "{{ consul_repository_key_checksum | d(omit) }}"
     mode: "0644"
+    force: "{{ _consul_repository_key_force | bool }}"
 
 - name: Add Consul repository
   ansible.builtin.apt_repository:
